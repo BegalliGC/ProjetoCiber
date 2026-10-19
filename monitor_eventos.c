@@ -68,3 +68,41 @@ int validar_evento(Lista *lista, Evento alerta){
     }
     return 1;
 }
+
+int inserir_inicio(Lista *lista, Evento alerta){
+    if (lista == NULL || !validar_evento(lista, alerta)) {
+        return 0;
+    }
+    No *novo = (No*) malloc(sizeof(No));
+    if (novo == NULL) {
+        return 0;
+    }
+    novo->evento = alerta;
+    novo->prox = lista->inicio;
+    lista->inicio = novo;
+    lista->qtd++;
+    return 1;
+}
+
+int inserir_final(Lista *lista, Evento alerta){
+    if (lista == NULL || !validar_evento(lista, alerta)) {
+        return 0;
+    }
+    No *novo = (No*) malloc(sizeof(No));
+    if (novo == NULL) {
+        return 0;
+    }
+    novo->evento = alerta;
+    novo->prox = NULL;
+    if (lista->inicio == NULL) {
+        lista->inicio = novo;
+    } else {
+        No *atual = lista->inicio;
+        while (atual->prox != NULL) {
+            atual = atual->prox;
+        }
+        atual->prox = novo;
+    }
+    lista->qtd++;
+    return 1;
+}
