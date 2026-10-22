@@ -6,9 +6,9 @@
 // Estrutura para definir os dados de um evento de segurança
 typedef struct Evento {
     int id;             // Identificador único do evento
-    char ip;        // Endereço IP de origem no formato "XXX.XXX.XXX.XXX"
+    char ip[16];        // Endereço IP de origem no formato "XXX.XXX.XXX.XXX"
     int severidade;     // Nível de 1 a 5 (onde 1 é o mais crítico)
-    char horario;    // Horário no formato "HH:MM:SS"
+    char horario[9];    // Horário no formato "HH:MM:SS"
     int tratado;        // Status: 0 = pendente | 1 = tratado pela equipe
 } Evento;
 
@@ -28,7 +28,7 @@ typedef struct Lista {
 // Cria e inicializa uma nova lista vazia na memória dinâmica (malloc)
 Lista* criar_lista() {
     Lista *nova_lista = (Lista*) malloc(sizeof(Lista));
-    if (nova_lista != NULL) {
+    if (nova_lista != NULL) { //garantir que caso o malloc n consiga alocar memória, n haja segmentation Fault - ct
         nova_lista->inicio = NULL; // A lista começa vazia
         nova_lista->qtd = 0;       // Quantidade inicial zerada
     }
@@ -38,9 +38,9 @@ Lista* criar_lista() {
 // Função de validação dos dados de um evento antes de inserir
 int validar_evento(Lista *lista, Evento alerta) {
     // 1. Verifica se o ID já existe na lista (garante identificador único)
-    if (lista != NULL) { 
-        No *atual = lista->inicio;
-        while (atual != NULL) {
+    if (lista != NULL) { //verifica lista vazia 
+        No *atual = lista->inicio;// atribui atual para melhor compreensão
+        while (atual != NULL) { // verifica se ja chegou ao ultimo elemento
             if (atual->evento.id == alerta.id) {
                 return 0; // ID duplicado -> Inválido
             }
@@ -204,4 +204,43 @@ int inserir_ordenado(Lista *lista, Evento alerta) {
     lista->qtd++;
 
     return 1;
+}
+int remover_id(Lista *lista, int id, Evento *removido){
+    if (lista == NULL || lista->inicio == NULL) {
+        return 0;
+    }
+    No *anterior = NULL;
+    No *atual = lista->inicio;
+    
+    while (atual != NULL && atual->evento.id != id) {
+        anterior = atual;
+        atual = atual->prox;
+    }
+    
+    if (atual == NULL) return 0; // ID não existe
+    
+    *removido = atual->evento; // Guarda os dados do evento removido (passagem por referência)
+    
+    if (anterior == NULL) {
+        lista->inicio = atual->prox; // Removendo o primeiro nó
+    } else {
+        anterior->prox = atual->prox; // Removendo do meio ou fim
+    }
+    
+    free(atual);
+    lista->qtd--;
+    return 1;
+}
+
+No* busca_id(Lista *lista, int id){
+    if (lista == NULL) {
+        return NULL;
+    }
+    No *atual = lista->inicio;
+    while (atual != NULL) {
+        if (atual->evento.id == id) {
+            return atual;
+        }
+    }
+    return NULL;
 }
