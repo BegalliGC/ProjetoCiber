@@ -25,10 +25,11 @@ typedef struct Lista {
 } Lista;
 
 
+
 // Cria e inicializa uma nova lista vazia na memória dinâmica (malloc)
 Lista* criar_lista() {
     Lista *nova_lista = (Lista*) malloc(sizeof(Lista));
-    if (nova_lista != NULL) { //garantir que caso o malloc n consiga alocar memória, n haja segmentation Fault - ct
+    if (nova_lista != NULL) {
         nova_lista->inicio = NULL; // A lista começa vazia
         nova_lista->qtd = 0;       // Quantidade inicial zerada
     }
@@ -38,9 +39,9 @@ Lista* criar_lista() {
 // Função de validação dos dados de um evento antes de inserir
 int validar_evento(Lista *lista, Evento alerta) {
     // 1. Verifica se o ID já existe na lista (garante identificador único)
-    if (lista != NULL) { //verifica lista vazia 
-        No *atual = lista->inicio;// atribui atual para melhor compreensão
-        while (atual != NULL) { // verifica se ja chegou ao ultimo elemento
+    if (lista != NULL) { 
+        No *atual = lista->inicio;
+        while (atual != NULL) {
             if (atual->evento.id == alerta.id) {
                 return 0; // ID duplicado -> Inválido
             }
@@ -76,7 +77,8 @@ int validar_evento(Lista *lista, Evento alerta) {
 }
 
 
-//  Insere um evento no início da lista (posição 0)
+
+// Insere um evento no início da lista (posição 0)
 int inserir_inicio(Lista *lista, Evento alerta) {
     if (lista == NULL || !validar_evento(lista, alerta)) {
         return 0; // Lista não existe ou dados inválidos
@@ -95,7 +97,7 @@ int inserir_inicio(Lista *lista, Evento alerta) {
     return 1; // Sucesso
 }
 
-//  Insere um evento no final da lista
+// Insere um evento no final da lista
 int inserir_final(Lista *lista, Evento alerta) {
     if (lista == NULL || !validar_evento(lista, alerta)) {
         return 0;
@@ -109,16 +111,14 @@ int inserir_final(Lista *lista, Evento alerta) {
     novo->evento = alerta;
     novo->prox = NULL; // Como será o último nó, o próximo é NULL
 
-    // Se a lista estiver vazia, o novo nó será o início
     if (lista->inicio == NULL) {
         lista->inicio = novo;
     } else {
-        // Percorre até o último nó da lista
         No *atual = lista->inicio;
         while (atual->prox != NULL) {
             atual = atual->prox;
         }
-        atual->prox = novo; // Faz o antigo último nó apontar para o novo
+        atual->prox = novo;
     }
 
     lista->qtd++;
@@ -127,12 +127,10 @@ int inserir_final(Lista *lista, Evento alerta) {
 
 // Insere um evento em uma posição p informada (posição 0 é o início)
 int inserir_posicao(Lista *lista, Evento alerta, int p) {
-    // Valida a lista, se a posição é válida (0 até qtd) e se o evento é válido
     if (lista == NULL || p < 0 || p > lista->qtd || !validar_evento(lista, alerta)) {
         return 0;
     }
 
-    // Casos particulares: insere no início ou no fim
     if (p == 0) {
         return inserir_inicio(lista, alerta);
     }
@@ -146,13 +144,11 @@ int inserir_posicao(Lista *lista, Evento alerta, int p) {
     }
     novo->evento = alerta;
 
-    // Caminha na lista até o nó anterior à posição p (posição p - 1)
     No *atual = lista->inicio;
     for (int i = 0; i < p - 1; i++) {
         atual = atual->prox;
     }
 
-    // Insere o novo nó entre 'atual' e 'atual->prox'
     novo->prox = atual->prox;
     atual->prox = novo;
     lista->qtd++;
@@ -160,8 +156,7 @@ int inserir_posicao(Lista *lista, Evento alerta, int p) {
     return 1;
 }
 
-// Insere ordenado por severidade (1 é a mais crítica).
-// Em caso de empate na severidade, o horário mais antigo ("HH:MM:SS") vem primeiro.
+// Insere ordenado por severidade (1 é a mais crítica) com desempate por horário
 int inserir_ordenado(Lista *lista, Evento alerta) {
     if (lista == NULL || !validar_evento(lista, alerta)) {
         return 0;
@@ -173,7 +168,7 @@ int inserir_ordenado(Lista *lista, Evento alerta) {
     }
     novo->evento = alerta;
 
-    // Caso 1: Inserção na cabeça (lista vazia ou o evento é mais crítico/antigo que o 1º nó)
+    // Cabeça da lista
     if (lista->inicio == NULL || 
         alerta.severidade < lista->inicio->evento.severidade ||
         (alerta.severidade == lista->inicio->evento.severidade && 
@@ -185,13 +180,12 @@ int inserir_ordenado(Lista *lista, Evento alerta) {
         return 1;
     }
 
-    // Caso 2: Procura a posição correta de inserção no meio ou final da lista
+    // Meio ou fim
     No *atual = lista->inicio;
     while (atual->prox != NULL) {
         int seg_sev = atual->prox->evento.severidade;
         char *seg_horario = atual->prox->evento.horario;
 
-        // Se o novo evento for mais crítico ou tiver horário menor que o próximo, para aqui
         if (alerta.severidade < seg_sev || 
            (alerta.severidade == seg_sev && strcmp(alerta.horario, seg_horario) < 0)) {
             break;
@@ -205,34 +199,115 @@ int inserir_ordenado(Lista *lista, Evento alerta) {
 
     return 1;
 }
-int remover_id(Lista *lista, int id, Evento *removido){
+
+
+
+// Remove um evento procurando pelo ID e retorna os dados em *removido
+int remover_id(Lista *lista, int id, Evento *removido) {
     if (lista == NULL || lista->inicio == NULL) {
         return 0;
     }
+
     No *anterior = NULL;
     No *atual = lista->inicio;
-    
+
     while (atual != NULL && atual->evento.id != id) {
         anterior = atual;
         atual = atual->prox;
     }
-    
-    if (atual == NULL) return 0; // ID não existe
-    
-    *removido = atual->evento; // Guarda os dados do evento removido (passagem por referência)
-    
+
+    if (atual == NULL) return 0; // ID não encontrado
+
+    if (removido != NULL) {
+        *removido = atual->evento; // Guarda os dados do evento por referência
+    }
+
     if (anterior == NULL) {
         lista->inicio = atual->prox; // Removendo o primeiro nó
     } else {
-        anterior->prox = atual->prox; // Removendo do meio ou fim
+        anterior->prox = atual->prox; // Removendo do meio ou do fim
     }
-    
+
     free(atual);
     lista->qtd--;
     return 1;
 }
 
-No* busca_id(Lista *lista, int id){
+// Remove todos os eventos cujo status seja 'tratado == 1'
+int remover_tratados(Lista *lista) {
+    if (lista == NULL || lista->inicio == NULL) {
+        return 0;
+    }
+
+    int total_removidos = 0;
+    No *atual = lista->inicio;
+    No *anterior = NULL;
+
+    while (atual != NULL) {
+        if (atual->evento.tratado == 1) {
+            No *aux = atual;
+            if (anterior == NULL) {
+                lista->inicio = atual->prox;
+                atual = lista->inicio;
+            } else {
+                anterior->prox = atual->prox;
+                atual = atual->prox;
+            }
+            free(aux);
+            lista->qtd--;
+            total_removidos++;
+        } else {
+            anterior = atual;
+            atual = atual->prox;
+        }
+    }
+
+    return total_removidos; // Retorna a quantidade total de eventos removidos
+}
+
+// Encontra e remove o evento mais crítico (menor valor de severidade)
+int remover_mais_critico(Lista *lista, Evento *removido) {
+    if (lista == NULL || lista->inicio == NULL) {
+        return 0;
+    }
+
+    No *atual = lista->inicio;
+    No *no_critico = lista->inicio;
+    No *ant_critico = NULL;
+
+    // Procura o nó com menor valor de severidade (e desempata por horário mais antigo)
+    while (atual->prox != NULL) {
+        No *prox_no = atual->prox;
+        if (prox_no->evento.severidade < no_critico->evento.severidade ||
+           (prox_no->evento.severidade == no_critico->evento.severidade &&
+            strcmp(prox_no->evento.horario, no_critico->evento.horario) < 0)) {
+            no_critico = prox_no;
+            ant_critico = atual;
+        }
+        atual = atual->prox;
+    }
+
+    // Copia os dados do evento removido por referência
+    if (removido != NULL) {
+        *removido = no_critico->evento;
+    }
+
+    // Desvincula o nó mais crítico da lista
+    if (ant_critico == NULL) {
+        lista->inicio = no_critico->prox;
+    } else {
+        ant_critico->prox = no_critico->prox;
+    }
+
+    free(no_critico);
+    lista->qtd--;
+    return 1;
+}
+
+
+
+// Busca um evento pelo ID e retorna o ponteiro para o Nó (NULL se não achar)
+No* busca_id(Lista *lista, int id) {
     if (lista == NULL) {
         return NULL;
     }
@@ -241,6 +316,87 @@ No* busca_id(Lista *lista, int id){
         if (atual->evento.id == id) {
             return atual;
         }
+        atual = atual->prox;
     }
     return NULL;
+}
+
+// Altera o status de um evento para 'tratado = 1'
+int marcar_tratado(Lista *lista, int id) {
+    No *no = busca_id(lista, id);
+    if (no != NULL) {
+        no->evento.tratado = 1;
+        return 1; // Sucesso
+    }
+    return 0; // ID não encontrado
+}
+
+// Imprime todos os eventos originados de um IP e retorna a contagem total
+int exibir_por_ip(Lista *lista, const char *ip) {
+    if (lista == NULL || lista->inicio == NULL) {
+        printf("\nLista vazia ou inexistente.\n");
+        return 0;
+    }
+
+    int encontrados = 0;
+    No *atual = lista->inicio;
+
+    printf("\n--- Ocorrencias registradas para o IP: %s ---\n", ip);
+    while (atual != NULL) {
+        if (strcmp(atual->evento.ip, ip) == 0) {
+            printf("ID: %-5d | Severidade: %d | Horario: %s | Status: %s\n",
+                   atual->evento.id,
+                   atual->evento.severidade,
+                   atual->evento.horario,
+                   atual->evento.tratado ? "TRATADO" : "PENDENTE");
+            encontrados++;
+        }
+        atual = atual->prox;
+    }
+
+    if (encontrados == 0) {
+        printf("Nenhum evento encontrado para o IP informado.\n");
+    }
+    printf("Total de ocorrencias: %d\n", encontrados);
+
+    return encontrados;
+}
+
+// Imprime todos os eventos da lista em formato organizado
+void exibir_lista(Lista *lista) {
+    if (lista == NULL || lista->inicio == NULL) {
+        printf("\n[AVISO] A lista de eventos esta vazia.\n");
+        return;
+    }
+
+    printf("\n=================================================================\n");
+    printf("                  MONITOR DE EVENTOS DE SEGURANCA                \n");
+    printf("=================================================================\n");
+    printf("Total de registros na lista: %d\n", lista->qtd);
+    printf("-----------------------------------------------------------------\n");
+
+    No *atual = lista->inicio;
+    while (atual != NULL) {
+        printf("ID: %-5d | IP: %-15s | Sev: %d | Hora: %s | Status: %s\n",
+               atual->evento.id,
+               atual->evento.ip,
+               atual->evento.severidade,
+               atual->evento.horario,
+               atual->evento.tratado ? "TRATADO" : "PENDENTE");
+        atual = atual->prox;
+    }
+    printf("=================================================================\n\n");
+}
+
+// Percorre a lista liberando a memória de cada nó e depois a própria lista
+void liberar_lista(Lista *lista) {
+    if (lista == NULL) return;
+
+    No *atual = lista->inicio;
+    while (atual != NULL) {
+        No *aux = atual;
+        atual = atual->prox;
+        free(aux);
+    }
+    free(lista);
 }
