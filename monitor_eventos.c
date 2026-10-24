@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-
+// Feito por CHRISTOPHER SILVESTRE RODRIGUES EVANGELISTA, GABRIEL COSTA BEGALLI REZENDE E  JOAO VICTOR SOUZA SANTOS
 // Estrutura para definir os dados de um evento de segurança
 typedef struct Evento {
     int id;             // Identificador único do evento
