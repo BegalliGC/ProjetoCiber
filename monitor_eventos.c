@@ -411,19 +411,21 @@ int main() {
         printf("1. Inserir evento no inicio\n");
         printf("2. Inserir evento no final\n");
         printf("3. Inserir evento ordenado (por severidade)\n");
-        printf("4. Exibir todos os eventos\n");
-        printf("5. Marcar evento como tratado (por ID)\n");
-        printf("6. Buscar e exibir eventos por IP\n");
-        printf("7. Remover evento por ID\n");
-        printf("8. Remover todos os eventos tratados\n");
+        printf("4. Inserir evento em posicao especifica\n");
+        printf("5. Exibir todos os eventos\n");
+        printf("6. Marcar evento como tratado (por ID)\n");
+        printf("7. Buscar e exibir eventos por IP\n");
+        printf("8. Remover evento por ID\n");
+        printf("9. Remover todos os eventos tratados\n");
+        printf("10. Remover evento mais critico\n");
         printf("0. Sair\n");
         printf("=========================================================\n");
         printf("Escolha uma opcao: ");
         
-        if (scanf("%d", &opcao) != 1) { //vai que a anta do usuário erra
+        if (scanf("%d", &opcao) != 1) {
             printf("\n[ERRO] Entrada invalida!\n");
-            while (getchar() != '\n'); //até hj eu n entendi isso, mas ta aq
-            continue; //ir pro switch
+            while (getchar() != '\n');
+            continue;
         }
 
         switch (opcao) {
@@ -434,7 +436,7 @@ int main() {
                 printf("IP (ex: 192.168.1.10): "); scanf("%s", ev.ip);
                 printf("Severidade (1 a 5): "); scanf("%d", &ev.severidade);
                 printf("Horario (HH:MM:SS): "); scanf("%s", ev.horario);
-                ev.tratado = 0; // Começa pendente
+                ev.tratado = 0;
 
                 if (inserir_inicio(minha_lista, ev)) {
                     printf("\n[SUCESSO] Evento inserido no inicio!\n");
@@ -475,10 +477,28 @@ int main() {
                 }
                 break;
             }
-            case 4:
+            case 4: {
+                Evento ev;
+                int pos;
+                printf("\n--- Inserir em Posicao Especifica ---\n");
+                printf("Posicao desejada (0 para inicio): "); scanf("%d", &pos);
+                printf("ID (inteiro): "); scanf("%d", &ev.id);
+                printf("IP (ex: 192.168.1.10): "); scanf("%s", ev.ip);
+                printf("Severidade (1 a 5): "); scanf("%d", &ev.severidade);
+                printf("Horario (HH:MM:SS): "); scanf("%s", ev.horario);
+                ev.tratado = 0;
+
+                if (inserir_posicao(minha_lista, ev, pos)) {
+                    printf("\n[SUCESSO] Evento inserido na posicao %d!\n", pos);
+                } else {
+                    printf("\n[ERRO] Posicao invalida, dados invalidos ou ID ja cadastrado.\n");
+                }
+                break;
+            }
+            case 5:
                 exibir_lista(minha_lista);
                 break;
-            case 5: {
+            case 6: {
                 int id;
                 printf("\nInforme o ID do evento para marcar como tratado: ");
                 scanf("%d", &id);
@@ -489,14 +509,14 @@ int main() {
                 }
                 break;
             }
-            case 6: {
+            case 7: {
                 char ip_busca[16];
                 printf("\nInforme o IP que deseja buscar: ");
                 scanf("%s", ip_busca);
                 exibir_por_ip(minha_lista, ip_busca);
                 break;
             }
-            case 7: {
+            case 8: {
                 int id;
                 Evento removido;
                 printf("\nInforme o ID do evento a ser removido: ");
@@ -508,9 +528,19 @@ int main() {
                 }
                 break;
             }
-            case 8: {
+            case 9: {
                 int qtd_remv = remover_tratados(minha_lista);
                 printf("\n[SUCESSO] Foram removidos %d eventos que ja estavam tratados.\n", qtd_remv);
+                break;
+            }
+            case 10: {
+                Evento removido;
+                if (remover_mais_critico(minha_lista, &removido)) {
+                    printf("\n[SUCESSO] Evento mais critico removido!\n");
+                    printf("ID: %d | Severidade: %d | Horario: %s\n", removido.id, removido.severidade, removido.horario);
+                } else {
+                    printf("\n[ERRO] A lista esta vazia.\n");
+                }
                 break;
             }
             case 0:
